@@ -1,0 +1,29 @@
+<VirtualHost *:80>
+        ServerName hello_apache
+
+        ProxyRequests       Off
+        ProxyPreserveHost On
+        ProxyVia On
+
+        <Proxy balancer://lb>
+               <% @params[:load_balancers].each do |lb| -%>
+               BalancerMember http://<%= lb %>:80
+               <% end -%>
+        </Proxy>
+
+        <Proxy *>
+           Allow from all
+        </Proxy>
+
+        ProxyPass           /                  balancer://lb/
+        ProxyPassReverse    /                  balancer://lb/
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel debug
+
+        CustomLog logs/hello.access.log combined
+        ErrorLog logs/hello.error.log
+        TransferLog logs/hello.transfer.log
+        LogLevel debug
+</VirtualHost>
